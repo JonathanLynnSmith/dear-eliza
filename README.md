@@ -1,4 +1,4 @@
-# Wren Hollow Letter
+# Dear Eliza
 
 A Vite + React toy: an old handwritten letter from a haunted house, found in a
 dark room and seen through a camcorder viewfinder. The page uses a
