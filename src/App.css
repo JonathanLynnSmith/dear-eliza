@@ -1,0 +1,838 @@
+.letter-page {
+  --spotlight-x: 50vw;
+  --spotlight-y: 50vh;
+  --flashlight-x: 0px;
+  --flashlight-y: 0px;
+  --flashlight-angle: 0deg;
+  --spotlight-size: clamp(180px, 20vw, 240px);
+  --flashlight-beam-scale: 0.4;
+  --flashlight-beam-width: clamp(88px, 12vw, 170px);
+  --beam-energy: 1;
+  --beam-size: 1;
+  --hud-inset: clamp(16px, 3.5vw, 40px);
+  --ink: #2a1a0e;
+  --ink-faded: #4a3220;
+  position: relative;
+  isolation: isolate;
+  min-height: 100svh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background:
+    radial-gradient(ellipse at 50% 45%, rgba(70, 42, 22, 0.35), transparent 60%),
+    repeating-linear-gradient(
+      91deg,
+      rgba(0, 0, 0, 0.18) 0 2px,
+      transparent 2px 9px,
+      rgba(90, 55, 30, 0.08) 9px 11px,
+      transparent 11px 23px
+    ),
+    #120c08;
+  color: #d8c8a8;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.page-noise {
+  position: absolute;
+  inset: 0;
+  opacity: 0.14;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.25'/%3E%3C/svg%3E");
+  mix-blend-mode: soft-light;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Camcorder viewfinder overlay */
+.camcorder-hud {
+  --hud-color: #f2f2ea;
+  position: fixed;
+  z-index: 5;
+  inset: 0;
+  color: var(--hud-color);
+  font-family: 'VT323', monospace;
+  font-size: clamp(1.25rem, 2.6vw, 1.9rem);
+  line-height: 1;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-shadow:
+    1.5px 0 rgba(255, 40, 60, 0.55),
+    -1.5px 0 rgba(40, 200, 255, 0.5),
+    0 0 6px rgba(255, 255, 255, 0.35),
+    0 1px 3px rgba(0, 0, 0, 0.9),
+    0 0 2px rgba(0, 0, 0, 0.9);
+  pointer-events: none;
+}
+
+/* faint video scanlines across the whole frame */
+.camcorder-hud::before {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.025) 0 1px,
+    transparent 1px 3px
+  );
+  content: '';
+}
+
+.viewfinder-corner {
+  position: absolute;
+  width: clamp(22px, 4vw, 40px);
+  height: clamp(22px, 4vw, 40px);
+  border: 0 solid rgba(242, 242, 234, 0.75);
+}
+
+.viewfinder-corner.top-left {
+  top: var(--hud-inset);
+  left: var(--hud-inset);
+  border-width: 2px 0 0 2px;
+}
+
+.viewfinder-corner.top-right {
+  top: var(--hud-inset);
+  right: var(--hud-inset);
+  border-width: 2px 2px 0 0;
+}
+
+.viewfinder-corner.bottom-left {
+  bottom: var(--hud-inset);
+  left: var(--hud-inset);
+  border-width: 0 0 2px 2px;
+}
+
+.viewfinder-corner.bottom-right {
+  right: var(--hud-inset);
+  bottom: var(--hud-inset);
+  border-width: 0 2px 2px 0;
+}
+
+.hud-recording,
+.battery-status,
+.hud-timecode,
+.hud-date,
+.shake-status {
+  position: absolute;
+}
+
+.hud-recording {
+  top: calc(var(--hud-inset) + 18px);
+  left: calc(var(--hud-inset) + 18px);
+  display: flex;
+  gap: 0.35em;
+  align-items: center;
+}
+
+.rec-dot {
+  width: 0.55em;
+  height: 0.55em;
+  border-radius: 50%;
+  background: #ff2a2a;
+  box-shadow: 0 0 8px rgba(255, 42, 42, 0.8);
+  animation: hud-blink 1s steps(1) infinite;
+}
+
+.hud-tape-speed {
+  margin-left: 0.6em;
+}
+
+.battery-status {
+  top: calc(var(--hud-inset) + 18px);
+  right: calc(var(--hud-inset) + 18px);
+  display: flex;
+  gap: 0.4em;
+  align-items: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.battery-icon {
+  position: relative;
+  display: flex;
+  gap: 2px;
+  width: 1.6em;
+  height: 0.75em;
+  padding: 2px;
+  border: 2px solid currentColor;
+  box-shadow: 1px 0 rgba(255, 40, 60, 0.5), -1px 0 rgba(40, 200, 255, 0.45);
+}
+
+.battery-icon::after {
+  position: absolute;
+  top: 50%;
+  right: -6px;
+  width: 3px;
+  height: 45%;
+  background: currentColor;
+  transform: translateY(-50%);
+  content: '';
+}
+
+.battery-icon > span {
+  flex: 1;
+}
+
+.battery-icon > span.is-charged {
+  background: currentColor;
+}
+
+.battery-warning .battery-status {
+  color: #ffd84a;
+}
+
+.battery-critical .battery-status,
+.battery-empty .battery-status {
+  color: #ff3b3b;
+}
+
+.battery-critical .battery-icon,
+.battery-empty .battery-icon {
+  animation: hud-blink 0.8s steps(1) infinite;
+}
+
+.hud-timecode {
+  bottom: calc(var(--hud-inset) + 18px);
+  left: calc(var(--hud-inset) + 18px);
+  font-variant-numeric: tabular-nums;
+}
+
+.hud-date {
+  right: calc(var(--hud-inset) + 18px);
+  bottom: calc(var(--hud-inset) + 18px);
+}
+
+.shake-status {
+  bottom: calc(var(--hud-inset) + 18px);
+  left: 50%;
+  width: min(46vw, 520px);
+  margin: 0;
+  font-size: 0.8em;
+  line-height: 1.15;
+  text-align: center;
+  transform: translateX(-50%);
+}
+
+.battery-warning .shake-status {
+  color: #ffd84a;
+}
+
+.battery-critical .shake-status,
+.battery-empty .shake-status {
+  color: #ff3b3b;
+  animation: hud-blink 1.2s steps(1) infinite;
+}
+
+@keyframes hud-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* The letter */
+.letter-layout {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: min(840px, calc(100% - 32px));
+  min-height: 100svh;
+  margin: 0 auto;
+  /* leave room to scroll the letter's last line clear of the camcorder status text */
+  padding: 72px 0 calc(var(--hud-inset) + 220px);
+  box-sizing: border-box;
+}
+
+.letter-shell {
+  position: relative;
+  display: block;
+  width: 100%;
+  transform: rotate(-1.4deg);
+}
+
+/*
+ * The paper's shadow is its own static element rather than a filter on the
+ * shell, so blood drips and glitches never force the shadow to be recomputed.
+ */
+.letter-shadow {
+  position: absolute;
+  inset: 3% 2% 1%;
+  box-shadow: 0 28px 48px 6px rgba(0, 0, 0, 0.72);
+  pointer-events: none;
+}
+
+.letter-paper {
+  position: relative;
+  z-index: 1;
+  padding: clamp(18px, 3vw, 28px) clamp(28px, 6vw, 64px) clamp(28px, 4vw, 44px);
+  background:
+    /* tea stain, top left */
+    radial-gradient(ellipse 38% 26% at 18% 12%, rgba(124, 78, 28, 0.28), transparent 70%),
+    /* cup ring, lower right */
+    radial-gradient(ellipse 52px 48px at 82% 76%, rgba(110, 66, 22, 0.05) 0 40px, rgba(110, 66, 22, 0.2) 47px, rgba(110, 66, 22, 0.06) 51px, transparent 58px),
+    /* damp patch along the bottom */
+    radial-gradient(ellipse 60% 18% at 40% 100%, rgba(96, 60, 24, 0.3), transparent 75%),
+    /* fold creases */
+    linear-gradient(90deg, transparent 49.7%, rgba(70, 45, 20, 0.22) 50%, rgba(255, 245, 220, 0.25) 50.3%, transparent 50.8%),
+    linear-gradient(180deg, transparent 33.1%, rgba(70, 45, 20, 0.2) 33.3%, rgba(255, 245, 220, 0.22) 33.5%, transparent 34%),
+    linear-gradient(180deg, transparent 66.3%, rgba(70, 45, 20, 0.2) 66.5%, rgba(255, 245, 220, 0.22) 66.7%, transparent 67.2%),
+    linear-gradient(165deg, #e6d4ab, #d6bf8d 55%, #c9ac76);
+  box-shadow:
+    inset 0 0 70px rgba(98, 60, 20, 0.55),
+    inset 0 0 14px rgba(70, 40, 12, 0.55);
+  clip-path: polygon(
+    0.6% 1.2%, 9% 0.3%, 18% 1%, 31% 0%, 44% 0.8%, 57% 0.2%, 70% 1.1%, 83% 0.1%, 96% 0.9%, 99.4% 0%,
+    100% 12%, 99.3% 26%, 100% 41%, 99.5% 55%, 100% 70%, 99.2% 84%, 99.8% 98.6%,
+    93% 99.6%, 88% 98.2%, 86.5% 100%, 74% 99.1%, 61% 100%, 47% 99.3%, 33% 100%, 20% 99.2%, 8% 100%, 0.4% 99.4%,
+    0% 86%, 0.7% 71%, 0% 57%, 0.6% 42%, 0% 28%, 0.8% 14%
+  );
+  color: var(--ink);
+  font-family: 'La Belle Aurore', cursive;
+  /* scale with the window height too, so the whole letter fits between the
+     camcorder readouts on a laptop screen */
+  font-size: clamp(1rem, min(2.6vw, 2.1vh), 1.4rem);
+  line-height: 1.6;
+  text-shadow: 0 0 1px rgba(42, 26, 14, 0.35);
+}
+
+/* one more lands on the letter each time the eyes are caught, up to five */
+.blood-splatter {
+  position: absolute;
+  z-index: 0;
+  width: clamp(240px, 48%, 360px);
+  height: auto;
+  aspect-ratio: 1;
+  overflow: visible;
+  fill: #5a0705;
+  opacity: 0.82;
+  pointer-events: none;
+  /* its own layer, so the drips repaint only the splatter */
+  will-change: transform;
+  transform: translate(-50%, -50%) rotate(var(--splatter-rotation))
+    scale(var(--splatter-scale));
+  animation: splatter-hit 160ms ease-out both;
+}
+
+.blood-drips path {
+  fill: #4e0604;
+  transform-box: fill-box;
+  transform-origin: top;
+  animation: blood-drip 2.6s ease-in both;
+  animation-delay: var(--drip-delay);
+}
+
+@keyframes splatter-hit {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--splatter-rotation))
+      scale(calc(var(--splatter-scale) * 0.6));
+  }
+}
+
+@keyframes blood-drip {
+  from {
+    transform: scaleY(0);
+  }
+}
+
+/* paper grain */
+.letter-paper::before {
+  position: absolute;
+  inset: 0;
+  opacity: 0.35;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)' opacity='.5'/%3E%3C/svg%3E");
+  mix-blend-mode: multiply;
+  content: '';
+}
+
+.letter-paper p {
+  position: relative;
+  margin: 0 0 0.8em;
+}
+
+.letter-heading {
+  font-size: 0.85em;
+  text-align: right;
+  color: var(--ink-faded);
+}
+
+.letter-salutation {
+  margin-top: 0.5em !important;
+}
+
+.letter-paper p:not([class]) {
+  text-indent: 2.2em;
+}
+
+.letter-paper s {
+  text-decoration-thickness: 2px;
+  text-decoration-color: rgba(42, 26, 14, 0.8);
+}
+
+.letter-closing {
+  margin-top: 0.6em !important;
+  padding-left: 38%;
+}
+
+.letter-signature {
+  position: relative;
+  display: inline-block;
+  margin: 0.15em 0 0 0.6em;
+  padding: 0 0.3em 0.35em;
+  font-family: 'Mrs Saint Delafield', cursive;
+  font-size: 2.2em;
+  line-height: 1.1;
+  white-space: nowrap;
+  transform: rotate(-5deg);
+}
+
+.signature-flourish {
+  position: absolute;
+  bottom: -0.05em;
+  left: 0.2em;
+  width: 105%;
+  height: 0.5em;
+  overflow: visible;
+}
+
+.signature-flourish path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+
+/* the postscript gets hurried, heavier, and less steady */
+.letter-postscript {
+  margin-top: 0.8em !important;
+  color: #1c0f06;
+  font-size: 1.08em;
+  letter-spacing: 0.02em;
+  transform: rotate(1.6deg);
+  text-shadow: 0 0 1.5px rgba(28, 15, 6, 0.5);
+}
+
+.unsteady-word {
+  display: inline-block;
+  white-space: pre;
+  transform: translateY(var(--word-drop)) rotate(var(--word-tilt));
+}
+
+.unsteady-word:nth-last-child(-n + 6) {
+  font-size: 1.12em;
+}
+
+/*
+ * The darkness is fixed to the viewport. Its hole is an oversized gradient
+ * that slides under the pointer with a transform, so following the pointer is
+ * pure compositing with no repaint.
+ */
+.spotlight-mask {
+  position: fixed;
+  z-index: 2;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  transition: opacity 220ms ease;
+}
+
+.spotlight-hole {
+  position: absolute;
+  top: -100vh;
+  left: -100vw;
+  width: 200vw;
+  height: 200vh;
+  background: radial-gradient(
+    circle at 50% 50%,
+    transparent 0,
+    transparent calc(var(--spotlight-size) * var(--beam-size) / 2),
+    rgba(5, 3, 2, 0.91) calc(var(--spotlight-size) * var(--beam-size) * 0.82),
+    rgba(5, 3, 2, 0.98) calc(var(--spotlight-size) * var(--beam-size) * 1.28)
+  );
+  transform: translate3d(var(--spotlight-x), var(--spotlight-y), 0);
+  will-change: transform;
+}
+
+.spotlight-mask::after {
+  position: absolute;
+  inset: 0;
+  background: rgba(5, 3, 2, 0.98);
+  opacity: calc(1 - var(--beam-energy));
+  content: '';
+}
+
+.flashlight {
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  left: 0;
+  width: 58px;
+  height: 30px;
+  pointer-events: none;
+  /* moved with a transform so following the pointer never triggers layout */
+  transform: translate(var(--flashlight-x), var(--flashlight-y)) translateY(-50%)
+    rotate(var(--flashlight-angle));
+  will-change: transform;
+  transform-origin: 0 50%;
+  transition: opacity 180ms ease;
+}
+
+.flashlight-beam {
+  position: absolute;
+  top: 50%;
+  left: 48px;
+  width: 640px;
+  height: var(--flashlight-beam-width);
+  pointer-events: none;
+  /* scaled rather than resized, so the blurred beam is drawn once */
+  transform: translateY(-50%) scaleX(var(--flashlight-beam-scale));
+  transform-origin: 0 50%;
+  will-change: transform;
+}
+
+.flashlight-beam > span {
+  position: absolute;
+  inset: 0;
+  clip-path: polygon(0 42%, 100% 4%, 100% 96%, 0 58%);
+  opacity: var(--beam-energy);
+}
+
+.beam-falloff {
+  background: linear-gradient(90deg, rgba(241, 184, 87, 0.12), transparent 92%);
+  filter: blur(22px);
+  transform: scaleY(1.45);
+}
+
+.beam-spill {
+  background: linear-gradient(90deg, rgba(255, 201, 105, 0.25), rgba(214, 137, 49, 0.07) 58%, transparent);
+  filter: blur(11px);
+}
+
+.beam-core {
+  background: linear-gradient(90deg, rgba(255, 245, 207, 0.62), rgba(255, 216, 137, 0.16) 45%, transparent 82%);
+  filter: blur(5px);
+  transform: scaleY(0.38);
+}
+
+.flashlight-body {
+  position: absolute;
+  top: 8px;
+  left: 4px;
+  width: 45px;
+  height: 15px;
+  border: 1px solid #5c625d;
+  border-radius: 7px 3px 3px 7px;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 4px, rgba(0, 0, 0, 0.24) 4px 6px),
+    linear-gradient(180deg, #555b57 0, #292d2a 42%, #101311 100%);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.16), 0 5px 9px rgba(0, 0, 0, 0.55);
+}
+
+.flashlight-head {
+  position: absolute;
+  top: -4px;
+  right: -8px;
+  width: 13px;
+  height: 21px;
+  border: 1px solid #676d68;
+  border-radius: 2px 6px 6px 2px;
+  background: linear-gradient(180deg, #646b66, #202421 58%, #101210);
+  box-shadow: inset 2px 0 rgba(255, 255, 255, 0.08);
+}
+
+.flashlight-lens {
+  position: absolute;
+  top: -1px;
+  right: -10px;
+  width: 4px;
+  height: 15px;
+  border-radius: 0 50% 50% 0;
+  background: #ffe5a3;
+  box-shadow: 0 0 calc(9px * var(--beam-energy)) rgba(255, 201, 95, 0.9);
+  opacity: var(--beam-energy);
+}
+
+.flashlight-grip {
+  position: absolute;
+  top: 2px;
+  left: 7px;
+  width: 18px;
+  height: 9px;
+  border-top: 1px solid rgba(210, 217, 211, 0.2);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.55);
+  background: repeating-linear-gradient(90deg, #222623 0 2px, #414642 2px 3px);
+}
+
+.battery-empty .flashlight-beam {
+  opacity: 0;
+}
+
+/* Eyes that watch from the dark and vanish when the beam finds them */
+.lurking-eyes {
+  position: fixed;
+  z-index: 3;
+  display: flex;
+  gap: 20px;
+  pointer-events: none;
+  transform: translate(-50%, -50%) rotate(-4deg);
+  animation: eyes-appear 2.4s ease-out both;
+}
+
+.lurking-eyes > span {
+  width: 14px;
+  height: 6px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, #fffbe2 0 38%, #f4d070 62%, #c98a2c 100%);
+  box-shadow:
+    0 0 6px 1px rgba(255, 220, 120, 0.7),
+    0 0 18px 6px rgba(230, 170, 60, 0.35);
+  animation: eyes-blink 4.2s ease-in-out infinite 1.6s;
+}
+
+.lurking-eyes.is-fading {
+  opacity: 0;
+  transition: opacity 1.4s ease-in;
+}
+
+.lurking-eyes.is-fleeing {
+  opacity: 0;
+  transform: translate(-50%, -50%) rotate(-4deg) scale(0.4);
+  transition: opacity 120ms ease-in, transform 180ms ease-in;
+}
+
+@keyframes eyes-appear {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 0.95;
+  }
+}
+
+@keyframes eyes-blink {
+  0%,
+  44%,
+  52%,
+  100% {
+    transform: scaleY(1);
+  }
+
+  48% {
+    transform: scaleY(0.08);
+  }
+}
+
+/* Camcorder tracking glitch */
+.is-glitching .letter-layout {
+  animation: glitch-jitter 650ms steps(1) both;
+}
+
+/* the exposure jumps so the new carving can be seen being cut */
+.is-glitching .spotlight-mask {
+  opacity: 0.3;
+  transition: none;
+}
+
+@keyframes glitch-jitter {
+  0% {
+    transform: translate(0, 0);
+  }
+
+  15% {
+    transform: translate(-11px, 2px) skewX(-3deg);
+  }
+
+  35% {
+    transform: translate(9px, -3px);
+  }
+
+  55% {
+    transform: translate(-5px, 0) skewX(2deg);
+  }
+
+  75% {
+    transform: translate(13px, 1px);
+  }
+
+  100% {
+    transform: none;
+  }
+}
+
+.glitch-lines {
+  position: fixed;
+  z-index: 4;
+  inset: 0;
+  overflow: hidden;
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.06) 0 1px,
+    transparent 1px 4px
+  );
+  pointer-events: none;
+}
+
+.glitch-lines > span {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  background:
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 300 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9 .05' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E"),
+    rgba(255, 255, 255, 0.18);
+  background-size: cover;
+  mix-blend-mode: screen;
+  opacity: 0.55;
+  animation: tracking-roll 650ms steps(6) both;
+}
+
+.glitch-lines > span:nth-child(1) {
+  top: 18%;
+  height: 14px;
+}
+
+.glitch-lines > span:nth-child(2) {
+  top: 52%;
+  height: 38px;
+  animation-delay: -120ms;
+}
+
+.glitch-lines > span:nth-child(3) {
+  top: 81%;
+  height: 7px;
+  animation-delay: -240ms;
+}
+
+@keyframes tracking-roll {
+  from {
+    transform: translate(-6%, 0);
+  }
+
+  to {
+    transform: translate(4%, 22vh);
+  }
+}
+
+/* Messages carved into the desk, one per glitch */
+.desk-carvings {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  pointer-events: none;
+}
+
+.svg-filters {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+/*
+ * A knife-cut groove through the dark stain: the cut exposes lighter wood with
+ * the grain running across it, the upper wall falls into shadow, and the lower
+ * lip catches a little light.
+ */
+.desk-carvings > span {
+  position: absolute;
+  color: transparent;
+  font-family: 'Rock Salt', cursive;
+  font-size: var(--carving-font-size);
+  line-height: var(--carving-line-height);
+  white-space: pre;
+  background:
+    repeating-linear-gradient(
+      92deg,
+      rgba(20, 10, 4, 0.45) 0 1px,
+      transparent 1px 3px,
+      rgba(20, 10, 4, 0.25) 3px 4px,
+      transparent 4px 7px
+    ),
+    linear-gradient(180deg, #0d0603 0%, #3b2414 40%, #6e4a2c 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  filter:
+    url(#carving-gouge)
+    drop-shadow(0 -1px 0 rgba(0, 0, 0, 0.9))
+    drop-shadow(0 1px 0 rgba(170, 120, 75, 0.3));
+  transform: rotate(var(--carving-rotation));
+  transform-origin: 0 50%;
+}
+
+/* freshly cut wood is pale and splintery until it darkens */
+.desk-carvings > span.is-fresh {
+  background:
+    repeating-linear-gradient(
+      92deg,
+      rgba(110, 66, 30, 0.45) 0 1px,
+      transparent 1px 3px,
+      rgba(255, 235, 200, 0.3) 3px 4px,
+      transparent 4px 6px
+    ),
+    linear-gradient(180deg, #4a2c15 0%, #b8895a 40%, #dcb788 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  filter:
+    url(#carving-gouge)
+    drop-shadow(0 -1px 0 rgba(0, 0, 0, 0.95))
+    drop-shadow(0 1px 0 rgba(255, 225, 180, 0.25));
+  animation: carve-in 650ms steps(8) both;
+}
+
+@keyframes carve-in {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@media (pointer: coarse) {
+  .flashlight {
+    opacity: 0.72;
+  }
+}
+
+@media (max-width: 700px) {
+  .shake-status {
+    bottom: calc(var(--hud-inset) + 52px);
+    width: calc(100% - 2 * var(--hud-inset) - 36px);
+  }
+
+  .letter-layout {
+    padding: 72px 0 calc(var(--hud-inset) + 240px);
+  }
+
+  .letter-shell {
+    transform: rotate(-0.8deg);
+  }
+
+  .letter-closing {
+    padding-left: 12%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .rec-dot,
+  .battery-icon,
+  .shake-status,
+  .blood-splatter,
+  .blood-drips path {
+    animation: none !important;
+  }
+}

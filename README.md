@@ -80,12 +80,26 @@ The pointer position is the beam endpoint. The flashlight body is placed back
 from that endpoint along the line toward the page center, using 24% of the page
 width clamped to 150–280 px and a 42 px edge margin. The body rotates toward the
 endpoint, and the visible beam starts at the lens, 48 px from the body's origin,
-then extends exactly to the pointer endpoint.
+then extends exactly to the pointer endpoint. Before the first pointer move,
+and permanently on touch devices, the light aims at the middle of the screen,
+and it stays under the pointer while the page scrolls.
 
-On touch devices, the first touch may request permission to receive device-motion
-events. Once permission is granted, shaking the device is the recharge path. If
-motion permission is denied or device motion is unavailable, recharge can be
-impossible on that device by design; the app does not provide a manual fallback.
+On touch devices, the first tap may request permission to receive device-motion
+events (iOS only grants it from a completed tap). If that request fails, the
+next tap tries again. Once permission is granted, shaking the device is the
+recharge path. If motion permission is denied or device motion is unavailable,
+recharge can be impossible on that device by design; the app does not provide a
+manual fallback.
+
+## Performance notes
+
+- Battery drain lives in a ref and only re-renders when the displayed
+	percentage changes.
+- Pointer moves are batched to one frame. The darkness is fixed to the viewport
+	and its hole slides with a transform, the flashlight moves with a transform,
+	and its beam is scaled rather than resized, so following the pointer is
+	compositing only.
+- The letter, carvings, and blood splatters are memoized components.
 
 ## Things in the dark
 

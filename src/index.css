@@ -1,0 +1,24 @@
+@import '@fontsource/la-belle-aurore/400.css';
+@import '@fontsource/mrs-saint-delafield/400.css';
+@import '@fontsource/rock-salt/400.css';
+@import '@fontsource/vt323/400.css';
+
+:root {
+  font-family: 'VT323', monospace;
+  color: #d8c8a8;
+  background: #120c08;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+}
